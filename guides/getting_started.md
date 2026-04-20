@@ -118,6 +118,27 @@ sheet = XlsxWriter.new_sheet("Sales Report")
 File.write!("sales_report.xlsx", xlsx_content)
 ```
 
+## Document Properties
+
+Set metadata like author, title, and subject on the workbook:
+
+```elixir
+sheet = XlsxWriter.new_sheet("Report")
+  |> XlsxWriter.write(0, 0, "Data")
+
+props = %XlsxWriter.WorkbookProperties{
+  author: "Jane Doe",
+  title: "Monthly Report",
+  subject: "Sales Data",
+  company: "Acme Corp"
+}
+
+{:ok, content} = XlsxWriter.generate([sheet], properties: props)
+File.write!("report.xlsx", content)
+```
+
+These properties appear in the File > Info section when opening the file in Excel.
+
 ## Next Steps
 
 - Learn about [Advanced Formatting](formatting.md)

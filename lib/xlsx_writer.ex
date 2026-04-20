@@ -65,6 +65,8 @@ defmodule XlsxWriter do
   ## Parameters
 
   - `sheets` - A list of `{sheet_name, instructions}` tuples
+  - `opts` - Optional keyword list:
+    - `:properties` - A `%XlsxWriter.WorkbookProperties{}` struct with document metadata
 
   ## Returns
 
@@ -79,8 +81,12 @@ defmodule XlsxWriter do
       iex> is_binary(xlsx_content)
       true
 
+      # With document properties
+      props = %XlsxWriter.WorkbookProperties{author: "John", title: "Report"}
+      {:ok, content} = XlsxWriter.generate([sheet], properties: props)
+
   """
-  def generate(sheets) when is_list(sheets) do
+  def generate(sheets, opts \\ []) when is_list(sheets) do
     # It might not be important to reverse the instructions here
     # but doing it to avoid potential confusion.
     sheets =
@@ -88,7 +94,16 @@ defmodule XlsxWriter do
         {name, Enum.reverse(instructions)}
       end)
 
-    case RustXlsxWriter.write(sheets) do
+    result =
+      case Keyword.get(opts, :properties) do
+        nil ->
+          RustXlsxWriter.write(sheets)
+
+        %XlsxWriter.WorkbookProperties{} = properties ->
+          RustXlsxWriter.write_with_properties(sheets, properties)
+      end
+
+    case result do
       {:ok, content} ->
         {:ok, IO.iodata_to_binary(content)}
 
@@ -138,7 +153,12 @@ defmodule XlsxWriter do
     - `:strikethrough` - Strike through text
     - `:superscript` - Superscript text
     - `:subscript` - Subscript text
-    - `{:align, :left | :center | :right}` - Text alignment
+    - `:text_wrap` - Wrap text within the cell
+    - `{:rotation, angle}` - Rotate text (-90 to 90 degrees, or 270 for vertical stacked text)
+    - `:shrink` - Shrink text to fit within the cell width
+    - `{:indent, level}` - Indent text by the given level (integer)
+    - `{:align, :left | :center | :right}` - Horizontal text alignment
+    - `{:valign, :top | :center | :bottom | :justify | :distributed}` - Vertical text alignment
     - `{:num_format, format_string}` - Custom number format
     - `{:bg_color, hex_color}` - Background color (e.g., "#FFFF00" for yellow)
     - `{:font_color, hex_color}` - Font color (e.g., "#FF0000" for red)
@@ -793,6 +813,58 @@ defmodule XlsxWriter do
        {:set_autofilter, first_row, first_col, last_row, last_col}
        | instructions
      ]}
+  end
+
+  @doc """
+  Enables autofit for all columns in the sheet.
+
+  Automatically adjusts column widths to fit the longest content in each column.
+  This is applied after all data is written. Note that explicit column widths
+  set via `set_column_width/3` will take precedence.
+
+  ## Parameters
+
+  - `sheet` - The sheet tuple `{name, instructions}`
+
+  ## Returns
+
+  Updated sheet tuple with the autofit instruction.
+
+  ## Examples
+
+      iex> sheet = XlsxWriter.new_sheet("Test")
+      iex> sheet = XlsxWriter.autofit(sheet)
+      iex> {"Test", [:set_autofit]} = sheet
+
+  """
+  def autofit({name, instructions}) do
+    {name, [:set_autofit | instructions]}
+  end
+
+  @doc """
+  Sets the color of the worksheet tab.
+
+  This changes the color of the sheet tab at the bottom of the Excel window,
+  useful for visually organizing multi-sheet workbooks.
+
+  ## Parameters
+
+  - `sheet` - The sheet tuple `{name, instructions}`
+  - `color` - Hex color string (e.g., "#FF0000" for red)
+
+  ## Returns
+
+  Updated sheet tuple with the tab color instruction.
+
+  ## Examples
+
+      iex> sheet = XlsxWriter.new_sheet("Test")
+      iex> sheet = XlsxWriter.set_tab_color(sheet, "#FF0000")
+      iex> {"Test", [{:set_tab_color, "#FF0000"}]} = sheet
+
+  """
+  def set_tab_color({name, instructions}, color) when is_binary(color) do
+    {name, [{:set_tab_color, color} | instructions]}
   end
 
   @doc """

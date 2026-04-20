@@ -1,4 +1,4 @@
-use rust_xlsxwriter::{Color, ExcelDateTime, Format, FormatAlign, FormatBorder, FormatPattern, FormatScript, FormatUnderline, Image, Note, Workbook, Worksheet, XlsxError, Formula, Url};
+use rust_xlsxwriter::{Color, DocProperties, ExcelDateTime, Format, FormatAlign, FormatBorder, FormatPattern, FormatScript, FormatUnderline, Image, Note, Workbook, Worksheet, XlsxError, Formula, Url};
 use rustler::{Binary, NifTaggedEnum};
 
 #[derive(NifTaggedEnum, PartialEq)]
@@ -6,6 +6,15 @@ enum CellAlignPos {
     Center,
     Left,
     Right,
+}
+
+#[derive(NifTaggedEnum, PartialEq)]
+enum CellVAlignPos {
+    Top,
+    Center,
+    Bottom,
+    Justify,
+    Distributed,
 }
 
 #[derive(NifTaggedEnum, PartialEq)]
@@ -67,6 +76,11 @@ enum CellFormat {
     BorderBottomColor(String),
     BorderLeftColor(String),
     BorderRightColor(String),
+    TextWrap,
+    Valign(CellVAlignPos),
+    Rotation(i16),
+    Shrink,
+    Indent(u8),
 }
 
 #[derive(rustler::NifStruct)]
@@ -114,11 +128,68 @@ enum Sheet<'a> {
     SetAutofilter(u32, u16, u32, u16),
     MergeRange(u32, u16, u32, u16, CellData<'a>),
     InsertNote(u32, u16, String, NoteOptions),
+    SetTabColor(String),
+    SetAutofit,
+}
+
+#[derive(rustler::NifStruct)]
+#[module = "XlsxWriter.WorkbookProperties"]
+struct WorkbookProperties {
+    author: Option<String>,
+    title: Option<String>,
+    subject: Option<String>,
+    manager: Option<String>,
+    company: Option<String>,
+    category: Option<String>,
+    keywords: Option<String>,
+    comment: Option<String>,
+    status: Option<String>,
 }
 
 #[rustler::nif]
 fn write(sheets: Vec<(String, Vec<Sheet>)>) -> Result<Vec<u8>, String> {
+    write_impl(sheets, None)
+}
+
+#[rustler::nif]
+fn write_with_properties(sheets: Vec<(String, Vec<Sheet>)>, properties: WorkbookProperties) -> Result<Vec<u8>, String> {
+    write_impl(sheets, Some(properties))
+}
+
+fn write_impl(sheets: Vec<(String, Vec<Sheet>)>, properties: Option<WorkbookProperties>) -> Result<Vec<u8>, String> {
     let mut workbook = Workbook::new();
+
+    if let Some(props) = properties {
+        let mut doc_props = DocProperties::new();
+        if let Some(author) = props.author {
+            doc_props = doc_props.set_author(&author);
+        }
+        if let Some(title) = props.title {
+            doc_props = doc_props.set_title(&title);
+        }
+        if let Some(subject) = props.subject {
+            doc_props = doc_props.set_subject(&subject);
+        }
+        if let Some(manager) = props.manager {
+            doc_props = doc_props.set_manager(&manager);
+        }
+        if let Some(company) = props.company {
+            doc_props = doc_props.set_company(&company);
+        }
+        if let Some(category) = props.category {
+            doc_props = doc_props.set_category(&category);
+        }
+        if let Some(keywords) = props.keywords {
+            doc_props = doc_props.set_keywords(&keywords);
+        }
+        if let Some(comment) = props.comment {
+            doc_props = doc_props.set_comment(&comment);
+        }
+        if let Some(status) = props.status {
+            doc_props = doc_props.set_status(&status);
+        }
+        workbook.set_properties(&doc_props);
+    }
 
     for (sheet_name, sheet) in sheets {
         let mut worksheet = workbook.add_worksheet();
@@ -190,6 +261,14 @@ fn write(sheets: Vec<(String, Vec<Sheet>)>) -> Result<Vec<u8>, String> {
                         Err(e) => return Err(e.to_string()),
                     }
                 }
+                Sheet::SetTabColor(color_hex) => {
+                    if let Some(color) = parse_hex_color(&color_hex) {
+                        worksheet.set_tab_color(color)
+                    } else {
+                        worksheet
+                    }
+                }
+                Sheet::SetAutofit => worksheet.autofit(),
                 Sheet::Write(row, col, data) => match write_data(worksheet, row, col, data) {
                     Ok(ws) => ws,
                     Err(e) => return Err(e.to_string()),
@@ -488,6 +567,17 @@ fn apply_formats(mut format: Format, formats: &[CellFormat]) -> Format {
                     format
                 }
             },
+            CellFormat::TextWrap => format.set_text_wrap(),
+            CellFormat::Valign(pos) => match pos {
+                CellVAlignPos::Top => format.set_align(FormatAlign::Top),
+                CellVAlignPos::Center => format.set_align(FormatAlign::VerticalCenter),
+                CellVAlignPos::Bottom => format.set_align(FormatAlign::Bottom),
+                CellVAlignPos::Justify => format.set_align(FormatAlign::VerticalJustify),
+                CellVAlignPos::Distributed => format.set_align(FormatAlign::VerticalDistributed),
+            },
+            CellFormat::Rotation(angle) => format.set_rotation(*angle),
+            CellFormat::Shrink => format.set_shrink(),
+            CellFormat::Indent(level) => format.set_indent(*level),
         };
     }
     return format;

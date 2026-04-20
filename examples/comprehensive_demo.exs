@@ -11,6 +11,7 @@ IO.puts("Generating comprehensive XlsxWriter demo...")
 # Sheet 1: Data Types
 data_types_sheet =
   XlsxWriter.new_sheet("Data Types")
+  |> XlsxWriter.set_tab_color("#00B050")
   |> XlsxWriter.write(0, 0, "Data Type Examples", format: [:bold, {:font_size, 14}])
   |> XlsxWriter.write(2, 0, "Type", format: [:bold])
   |> XlsxWriter.write(2, 1, "Example", format: [:bold])
@@ -51,13 +52,12 @@ data_types_sheet =
   |> XlsxWriter.write(11, 0, "Blank")
   |> XlsxWriter.write_blank(11, 1, format: [{:bg_color, "#FFFF00"}])
   |> XlsxWriter.write(11, 2, "Formatted empty cell")
-  |> XlsxWriter.set_column_width(0, 15)
-  |> XlsxWriter.set_column_width(1, 20)
-  |> XlsxWriter.set_column_width(2, 25)
+  |> XlsxWriter.autofit()
 
 # Sheet 2: Font Formatting
 font_sheet =
   XlsxWriter.new_sheet("Font Formatting")
+  |> XlsxWriter.set_tab_color("#0000FF")
   |> XlsxWriter.write(0, 0, "Font Formatting Examples", format: [:bold, {:font_size, 14}])
   # Font styles
   |> XlsxWriter.write(2, 0, "Bold Text", format: [:bold])
@@ -88,6 +88,7 @@ font_sheet =
 # Sheet 3: Cell Borders
 borders_sheet =
   XlsxWriter.new_sheet("Borders")
+  |> XlsxWriter.set_tab_color("#FF0000")
   |> XlsxWriter.write(0, 0, "Border Examples", format: [:bold, {:font_size, 14}])
   # All sides borders
   |> XlsxWriter.write(2, 0, "Thin Border", format: [{:border, :thin}])
@@ -116,6 +117,7 @@ borders_sheet =
 # Sheet 4: Background Colors & Patterns
 background_sheet =
   XlsxWriter.new_sheet("Backgrounds")
+  |> XlsxWriter.set_tab_color("#800080")
   |> XlsxWriter.write(0, 0, "Background Examples", format: [:bold, {:font_size, 14}])
   # Solid colors
   |> XlsxWriter.write(2, 0, "Red Background", format: [{:bg_color, "#FF0000"}, {:font_color, "#FFFFFF"}])
@@ -130,31 +132,74 @@ background_sheet =
   |> XlsxWriter.write(11, 0, "Gray 6.25%", format: [{:bg_color, "#CCCCCC"}, {:pattern, :gray0625}])
   |> XlsxWriter.set_column_width(0, 25)
 
-# Sheet 5: Alignment & Number Formats
+# Sheet 5: Alignment, Text Control & Number Formats
 formatting_sheet =
   XlsxWriter.new_sheet("Alignment & Numbers")
-  |> XlsxWriter.write(0, 0, "Alignment & Number Formatting", format: [:bold, {:font_size, 14}])
-  # Alignment
-  |> XlsxWriter.write(2, 0, "Left Aligned", format: [{:align, :left}])
-  |> XlsxWriter.write(3, 0, "Center Aligned", format: [{:align, :center}])
-  |> XlsxWriter.write(4, 0, "Right Aligned", format: [{:align, :right}])
+  |> XlsxWriter.set_tab_color("#FF6600")
+  |> XlsxWriter.write(0, 0, "Alignment, Text Control & Number Formatting", format: [:bold, {:font_size, 14}])
+  # Horizontal alignment
+  |> XlsxWriter.write(2, 0, "Horizontal:", format: [:bold])
+  |> XlsxWriter.write(3, 0, "Left Aligned", format: [{:align, :left}])
+  |> XlsxWriter.write(4, 0, "Center Aligned", format: [{:align, :center}])
+  |> XlsxWriter.write(5, 0, "Right Aligned", format: [{:align, :right}])
+  # Vertical alignment
+  |> XlsxWriter.write(2, 1, "Vertical:", format: [:bold])
+  |> XlsxWriter.write(3, 1, "Top", format: [{:valign, :top}, {:border, :thin}])
+  |> XlsxWriter.write(4, 1, "Center", format: [{:valign, :center}, {:border, :thin}])
+  |> XlsxWriter.write(5, 1, "Bottom", format: [{:valign, :bottom}, {:border, :thin}])
+  |> XlsxWriter.set_row_range_height(3, 5, 35)
+  # Combined alignment
+  |> XlsxWriter.write(2, 2, "Combined:", format: [:bold])
+  |> XlsxWriter.write(3, 2, "Center + Middle",
+    format: [{:align, :center}, {:valign, :center}, {:border, :thin}])
+  |> XlsxWriter.write(4, 2, "Right + Bottom",
+    format: [{:align, :right}, {:valign, :bottom}, {:border, :thin}])
+  |> XlsxWriter.write(5, 2, "Left + Top",
+    format: [{:align, :left}, {:valign, :top}, {:border, :thin}])
+  # Text wrapping
+  |> XlsxWriter.write(7, 0, "Text Wrapping:", format: [:bold])
+  |> XlsxWriter.write(8, 0, "This is a long text that will automatically wrap within the cell boundaries",
+    format: [:text_wrap])
+  |> XlsxWriter.write(8, 1, "Wrapped + Bold + Centered",
+    format: [:text_wrap, :bold, {:align, :center}, {:valign, :center}])
+  |> XlsxWriter.set_row_height(8, 50)
+  # Text rotation
+  |> XlsxWriter.write(7, 2, "Rotation:", format: [:bold])
+  |> XlsxWriter.write(8, 2, "45 degrees", format: [{:rotation, 45}])
+  |> XlsxWriter.write(8, 3, "-45 degrees", format: [{:rotation, -45}])
+  |> XlsxWriter.write(8, 4, "Vertical", format: [{:rotation, 270}])
+  # Shrink to fit
+  |> XlsxWriter.write(10, 0, "Shrink to Fit:", format: [:bold])
+  |> XlsxWriter.write(11, 0, "This very long text will shrink to fit the column width automatically",
+    format: [:shrink])
+  # Text indent
+  |> XlsxWriter.write(10, 1, "Text Indent:", format: [:bold])
+  |> XlsxWriter.write(11, 1, "No indent")
+  |> XlsxWriter.write(12, 1, "Indent 1", format: [{:indent, 1}])
+  |> XlsxWriter.write(13, 1, "Indent 2", format: [{:indent, 2}])
+  |> XlsxWriter.write(14, 1, "Indent 3", format: [{:indent, 3}])
   # Number formats
-  |> XlsxWriter.write(6, 0, "Currency:")
-  |> XlsxWriter.write(6, 1, 1234.56, format: [{:num_format, "$#,##0.00"}])
-  |> XlsxWriter.write(7, 0, "Percentage:")
-  |> XlsxWriter.write(7, 1, 0.75, format: [{:num_format, "0.00%"}])
-  |> XlsxWriter.write(8, 0, "Thousands:")
-  |> XlsxWriter.write(8, 1, 1234567, format: [{:num_format, "#,##0"}])
-  |> XlsxWriter.write(9, 0, "Decimal:")
-  |> XlsxWriter.write(9, 1, 3.14159, format: [{:num_format, "0.00"}])
-  |> XlsxWriter.write(10, 0, "Scientific:")
-  |> XlsxWriter.write(10, 1, 1234.56, format: [{:num_format, "0.00E+00"}])
-  |> XlsxWriter.set_column_width(0, 15)
+  |> XlsxWriter.write(16, 0, "Number Formats:", format: [:bold])
+  |> XlsxWriter.write(17, 0, "Currency:")
+  |> XlsxWriter.write(17, 1, 1234.56, format: [{:num_format, "$#,##0.00"}])
+  |> XlsxWriter.write(18, 0, "Percentage:")
+  |> XlsxWriter.write(18, 1, 0.75, format: [{:num_format, "0.00%"}])
+  |> XlsxWriter.write(19, 0, "Thousands:")
+  |> XlsxWriter.write(19, 1, 1234567, format: [{:num_format, "#,##0"}])
+  |> XlsxWriter.write(20, 0, "Decimal:")
+  |> XlsxWriter.write(20, 1, 3.14159, format: [{:num_format, "0.00"}])
+  |> XlsxWriter.write(21, 0, "Scientific:")
+  |> XlsxWriter.write(21, 1, 1234.56, format: [{:num_format, "0.00E+00"}])
+  |> XlsxWriter.set_column_width(0, 20)
   |> XlsxWriter.set_column_width(1, 20)
+  |> XlsxWriter.set_column_width(2, 15)
+  |> XlsxWriter.set_column_width(3, 15)
+  |> XlsxWriter.set_column_width(4, 10)
 
 # Sheet 6: Layout Features
 layout_sheet =
   XlsxWriter.new_sheet("Layout Features")
+  |> XlsxWriter.set_tab_color("#4472C4")
   |> XlsxWriter.write(0, 0, "Layout Feature Examples", format: [:bold, {:font_size, 14}])
   # Freeze panes (freeze first two rows)
   |> XlsxWriter.write(1, 0, "Col A", format: [:bold, {:bg_color, "#4472C4"}, {:font_color, "#FFFFFF"}])
@@ -191,6 +236,7 @@ layout_sheet =
 # Sheet 7: Merged Cells
 merged_sheet =
   XlsxWriter.new_sheet("Merged Cells")
+  |> XlsxWriter.set_tab_color("#FFD700")
   # Title spanning columns A-D
   |> XlsxWriter.merge_range(0, 0, 0, 3, "Quarterly Sales Report",
     format: [:bold, {:font_size, 16}, {:align, :center}, {:bg_color, "#4472C4"}, {:font_color, "#FFFFFF"}])
@@ -219,6 +265,7 @@ merged_sheet =
 # Sheet 8: Complex Example - Invoice
 invoice_sheet =
   XlsxWriter.new_sheet("Invoice Example")
+  |> XlsxWriter.set_tab_color("#333333")
   # Company header
   |> XlsxWriter.merge_range(0, 0, 1, 3, "ACME Corporation",
     format: [:bold, {:font_size, 20}, {:align, :center}, {:bg_color, "#4472C4"}, {:font_color, "#FFFFFF"}])
@@ -255,6 +302,7 @@ invoice_sheet =
 # Sheet 9: Rich Text Formatting
 rich_text_sheet =
   XlsxWriter.new_sheet("Rich Text")
+  |> XlsxWriter.set_tab_color("#00BFFF")
   |> XlsxWriter.write(0, 0, "Rich Text Examples", format: [:bold, {:font_size, 14}])
   # Bold and normal text
   |> XlsxWriter.write(2, 0, "Mixed Styles:")
@@ -310,13 +358,13 @@ rich_text_sheet =
     {"$99.99", [:strikethrough]},
     {" Now: $49.99", [:bold, {:font_color, "#FF0000"}]}
   ])
-  |> XlsxWriter.set_column_width(0, 15)
-  |> XlsxWriter.set_column_width(1, 40)
+  |> XlsxWriter.autofit()
 
 # Generate the workbook
 # Sheet 10: Comments/Notes
 comments_sheet =
   XlsxWriter.new_sheet("Comments")
+  |> XlsxWriter.set_tab_color("#C00000")
   |> XlsxWriter.write(0, 0, "Cell Comments Demo", format: [:bold, {:font_size, 14}])
   |> XlsxWriter.write_comment(0, 0, "Comments provide additional context and documentation")
   |> XlsxWriter.write(2, 0, "Feature", format: [:bold])
@@ -350,6 +398,17 @@ comments_sheet =
   |> XlsxWriter.set_column_width(0, 20)
   |> XlsxWriter.set_column_width(1, 25)
 
+# Workbook properties (document metadata)
+props = %XlsxWriter.WorkbookProperties{
+  author: "XlsxWriter Demo",
+  title: "Comprehensive Feature Demo",
+  subject: "XlsxWriter Library Features",
+  company: "Elixir Community",
+  category: "Demo",
+  keywords: "xlsx, elixir, demo, spreadsheet",
+  comment: "Generated by XlsxWriter comprehensive demo script"
+}
+
 {:ok, content} = XlsxWriter.generate([
   data_types_sheet,
   font_sheet,
@@ -361,7 +420,7 @@ comments_sheet =
   invoice_sheet,
   rich_text_sheet,
   comments_sheet
-])
+], properties: props)
 
 # Write to file in examples folder
 output_file = Path.join(__DIR__, "output/comprehensive_demo.xlsx")
@@ -374,10 +433,15 @@ IO.puts("  • All data types (strings, numbers, dates, booleans, formulas, URLs
 IO.puts("  • Font formatting (colors, sizes, styles, families)")
 IO.puts("  • Cell borders (all 13 styles, colored, per-side)")
 IO.puts("  • Background colors and patterns")
-IO.puts("  • Text alignment and number formats")
+IO.puts("  • Text alignment (horizontal + vertical)")
+IO.puts("  • Text wrapping, rotation, shrink to fit, indent")
+IO.puts("  • Number formats (currency, percentage, scientific)")
 IO.puts("  • Layout features (freeze panes, autofilter, hidden rows/columns)")
+IO.puts("  • Column autofit (auto-adjust widths)")
 IO.puts("  • Range operations for bulk sizing")
 IO.puts("  • Merged cells")
 IO.puts("  • Rich text formatting (mixed styles in single cells)")
 IO.puts("  • Cell comments/notes")
+IO.puts("  • Worksheet tab colors")
+IO.puts("  • Workbook properties (author, title, subject, etc.)")
 IO.puts("  • A complete invoice example")

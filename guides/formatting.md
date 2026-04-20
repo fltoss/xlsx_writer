@@ -2,6 +2,27 @@
 
 This guide covers all the formatting options available in XlsxWriter.
 
+## Text Wrapping
+
+Wrap text within a cell instead of overflowing into adjacent cells:
+
+```elixir
+sheet = XlsxWriter.new_sheet("Wrapped Text")
+  # Basic text wrapping
+  |> XlsxWriter.write(0, 0, "This is a long text that will wrap within the cell",
+      format: [:text_wrap])
+
+  # Combine with other formatting
+  |> XlsxWriter.write(1, 0, "Bold wrapped text with background",
+      format: [:text_wrap, :bold, {:bg_color, "#FFFF00"}])
+
+  # Set column width for better wrapping
+  |> XlsxWriter.set_column_width(0, 20)
+
+{:ok, content} = XlsxWriter.generate([sheet])
+File.write!("wrapped.xlsx", content)
+```
+
 ## Font Styling
 
 Apply comprehensive font styling with colors, sizes, styles, and text positioning:
@@ -240,6 +261,10 @@ File.write!("combined.xlsx", content)
 
 | Format Type | Option | Example |
 |-------------|--------|---------|
+| **Text Wrap** | `:text_wrap` | `format: [:text_wrap]` |
+| **Text Rotation** | `{:rotation, angle}` | `format: [{:rotation, 45}]` |
+| **Shrink to Fit** | `:shrink` | `format: [:shrink]` |
+| **Indent** | `{:indent, level}` | `format: [{:indent, 2}]` |
 | **Font Weight** | `:bold` | `format: [:bold]` |
 | **Font Style** | `:italic` | `format: [:italic]` |
 | | `:strikethrough` | `format: [:strikethrough]` |
@@ -263,4 +288,9 @@ File.write!("combined.xlsx", content)
 | **Alignment** | `{:align, :left}` | `format: [{:align, :left}]` |
 | | `{:align, :center}` | `format: [{:align, :center}]` |
 | | `{:align, :right}` | `format: [{:align, :right}]` |
+| **Vertical Alignment** | `{:valign, :top}` | `format: [{:valign, :top}]` |
+| | `{:valign, :center}` | `format: [{:valign, :center}]` |
+| | `{:valign, :bottom}` | `format: [{:valign, :bottom}]` |
+| | `{:valign, :justify}` | `format: [{:valign, :justify}]` |
+| | `{:valign, :distributed}` | `format: [{:valign, :distributed}]` |
 | **Numbers** | `{:num_format, "format_string"}` | `format: [{:num_format, "$#,##0.00"}]` |

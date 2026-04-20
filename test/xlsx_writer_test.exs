@@ -330,6 +330,136 @@ defmodule XlsxWriterTest do
     end
   end
 
+  describe "text wrapping" do
+    test "generates valid xlsx with text wrap" do
+      sheet =
+        XlsxWriter.new_sheet("Wrap")
+        |> XlsxWriter.write(0, 0, "This is a long text that should wrap within the cell",
+          format: [:text_wrap]
+        )
+        |> XlsxWriter.write(0, 1, "Wrapped and bold",
+          format: [:text_wrap, :bold]
+        )
+        |> XlsxWriter.set_column_width(0, 20)
+
+      assert {:ok, content} = XlsxWriter.generate([sheet])
+      assert <<80, _>> <> _ = content
+    end
+
+    test "creates correct instruction for text wrap" do
+      sheet =
+        XlsxWriter.new_sheet("Test")
+        |> XlsxWriter.write(0, 0, "Wrapped", format: [:text_wrap])
+
+      {"Test", [{:write, 0, 0, {:string_with_format, "Wrapped", [:text_wrap]}}]} = sheet
+    end
+  end
+
+  describe "vertical alignment" do
+    test "generates valid xlsx with vertical alignment" do
+      sheet =
+        XlsxWriter.new_sheet("VAlign")
+        |> XlsxWriter.write(0, 0, "Top", format: [{:valign, :top}])
+        |> XlsxWriter.write(0, 1, "Center", format: [{:valign, :center}])
+        |> XlsxWriter.write(0, 2, "Bottom", format: [{:valign, :bottom}])
+        |> XlsxWriter.write(0, 3, "Justify", format: [{:valign, :justify}])
+        |> XlsxWriter.write(0, 4, "Distributed", format: [{:valign, :distributed}])
+        |> XlsxWriter.set_row_height(0, 40)
+
+      assert {:ok, content} = XlsxWriter.generate([sheet])
+      assert <<80, _>> <> _ = content
+    end
+
+    test "combines horizontal and vertical alignment" do
+      sheet =
+        XlsxWriter.new_sheet("Test")
+        |> XlsxWriter.write(0, 0, "Centered Both",
+          format: [{:align, :center}, {:valign, :center}]
+        )
+        |> XlsxWriter.set_row_height(0, 40)
+
+      assert {:ok, content} = XlsxWriter.generate([sheet])
+      assert <<80, _>> <> _ = content
+    end
+
+    test "creates correct instruction for valign" do
+      sheet =
+        XlsxWriter.new_sheet("Test")
+        |> XlsxWriter.write(0, 0, "Top", format: [{:valign, :top}])
+
+      {"Test", [{:write, 0, 0, {:string_with_format, "Top", [{:valign, :top}]}}]} = sheet
+    end
+  end
+
+  describe "text rotation" do
+    test "generates valid xlsx with rotated text" do
+      sheet =
+        XlsxWriter.new_sheet("Rotation")
+        |> XlsxWriter.write(0, 0, "45 degrees", format: [{:rotation, 45}])
+        |> XlsxWriter.write(0, 1, "-45 degrees", format: [{:rotation, -45}])
+        |> XlsxWriter.write(0, 2, "90 degrees", format: [{:rotation, 90}])
+        |> XlsxWriter.write(0, 3, "Stacked", format: [{:rotation, 270}])
+        |> XlsxWriter.set_row_height(0, 60)
+
+      assert {:ok, content} = XlsxWriter.generate([sheet])
+      assert <<80, _>> <> _ = content
+    end
+
+    test "creates correct instruction for rotation" do
+      sheet =
+        XlsxWriter.new_sheet("Test")
+        |> XlsxWriter.write(0, 0, "Rotated", format: [{:rotation, 45}])
+
+      {"Test", [{:write, 0, 0, {:string_with_format, "Rotated", [{:rotation, 45}]}}]} = sheet
+    end
+  end
+
+  describe "shrink to fit" do
+    test "generates valid xlsx with shrink to fit" do
+      sheet =
+        XlsxWriter.new_sheet("Shrink")
+        |> XlsxWriter.write(0, 0, "This long text will shrink to fit the column width",
+          format: [:shrink]
+        )
+        |> XlsxWriter.write(0, 1, "Shrink + bold", format: [:shrink, :bold])
+        |> XlsxWriter.set_column_width(0, 15)
+        |> XlsxWriter.set_column_width(1, 10)
+
+      assert {:ok, content} = XlsxWriter.generate([sheet])
+      assert <<80, _>> <> _ = content
+    end
+
+    test "creates correct instruction for shrink" do
+      sheet =
+        XlsxWriter.new_sheet("Test")
+        |> XlsxWriter.write(0, 0, "Shrink", format: [:shrink])
+
+      {"Test", [{:write, 0, 0, {:string_with_format, "Shrink", [:shrink]}}]} = sheet
+    end
+  end
+
+  describe "text indent" do
+    test "generates valid xlsx with text indent" do
+      sheet =
+        XlsxWriter.new_sheet("Indent")
+        |> XlsxWriter.write(0, 0, "No indent")
+        |> XlsxWriter.write(1, 0, "Indent 1", format: [{:indent, 1}])
+        |> XlsxWriter.write(2, 0, "Indent 2", format: [{:indent, 2}])
+        |> XlsxWriter.write(3, 0, "Indent 3", format: [{:indent, 3}])
+
+      assert {:ok, content} = XlsxWriter.generate([sheet])
+      assert <<80, _>> <> _ = content
+    end
+
+    test "creates correct instruction for indent" do
+      sheet =
+        XlsxWriter.new_sheet("Test")
+        |> XlsxWriter.write(0, 0, "Indented", format: [{:indent, 2}])
+
+      {"Test", [{:write, 0, 0, {:string_with_format, "Indented", [{:indent, 2}]}}]} = sheet
+    end
+  end
+
   describe "font colors and styles" do
     test "generates valid xlsx with font colors and styles" do
       sheet =
@@ -1029,6 +1159,96 @@ defmodule XlsxWriterTest do
           {:rich_string_with_format,
            [{"Bold ", [:bold]}, {"Italic", [:italic]}], [{:align, :center}]}}
        ]} = sheet
+    end
+  end
+
+  describe "autofit" do
+    test "generates valid xlsx with autofit" do
+      sheet =
+        XlsxWriter.new_sheet("Autofit")
+        |> XlsxWriter.write(0, 0, "Short")
+        |> XlsxWriter.write(0, 1, "This is a much longer column header text")
+        |> XlsxWriter.write(1, 0, "A")
+        |> XlsxWriter.write(1, 1, "B")
+        |> XlsxWriter.autofit()
+
+      assert {:ok, content} = XlsxWriter.generate([sheet])
+      assert <<80, _>> <> _ = content
+    end
+
+    test "creates correct instruction for autofit" do
+      sheet =
+        XlsxWriter.new_sheet("Test")
+        |> XlsxWriter.autofit()
+
+      {"Test", [:set_autofit]} = sheet
+    end
+  end
+
+  describe "tab color" do
+    test "generates valid xlsx with tab colors" do
+      sheet1 =
+        XlsxWriter.new_sheet("Red Tab")
+        |> XlsxWriter.set_tab_color("#FF0000")
+        |> XlsxWriter.write(0, 0, "Red tab sheet")
+
+      sheet2 =
+        XlsxWriter.new_sheet("Blue Tab")
+        |> XlsxWriter.set_tab_color("#0000FF")
+        |> XlsxWriter.write(0, 0, "Blue tab sheet")
+
+      assert {:ok, content} = XlsxWriter.generate([sheet1, sheet2])
+      assert <<80, _>> <> _ = content
+    end
+
+    test "creates correct instruction for tab color" do
+      sheet =
+        XlsxWriter.new_sheet("Test")
+        |> XlsxWriter.set_tab_color("#FF0000")
+
+      {"Test", [{:set_tab_color, "#FF0000"}]} = sheet
+    end
+  end
+
+  describe "workbook properties" do
+    test "generates valid xlsx with document properties" do
+      sheet =
+        XlsxWriter.new_sheet("Data")
+        |> XlsxWriter.write(0, 0, "Hello")
+
+      props = %XlsxWriter.WorkbookProperties{
+        author: "Test Author",
+        title: "Test Report",
+        subject: "Testing",
+        company: "Test Corp",
+        category: "Reports",
+        keywords: "test, xlsx",
+        comment: "Generated by XlsxWriter",
+        status: "Draft"
+      }
+
+      assert {:ok, content} = XlsxWriter.generate([sheet], properties: props)
+      assert <<80, _>> <> _ = content
+    end
+
+    test "generates valid xlsx with partial properties" do
+      sheet =
+        XlsxWriter.new_sheet("Data")
+        |> XlsxWriter.write(0, 0, "Hello")
+
+      props = %XlsxWriter.WorkbookProperties{author: "Jane Doe"}
+
+      assert {:ok, content} = XlsxWriter.generate([sheet], properties: props)
+      assert <<80, _>> <> _ = content
+    end
+
+    test "generates valid xlsx without properties (backward compatible)" do
+      sheet =
+        XlsxWriter.new_sheet("Data")
+        |> XlsxWriter.write(0, 0, "Hello")
+
+      assert {:ok, content} = XlsxWriter.generate([sheet])
+      assert <<80, _>> <> _ = content
     end
   end
 

@@ -191,6 +191,47 @@ sheet = XlsxWriter.new_sheet("With Image")
 File.write!("with_image.xlsx", content)
 ```
 
+## Column Autofit
+
+Automatically adjust column widths to fit the longest content:
+
+```elixir
+sheet = XlsxWriter.new_sheet("Auto Sized")
+  |> XlsxWriter.write(0, 0, "Name", format: [:bold])
+  |> XlsxWriter.write(0, 1, "Description", format: [:bold])
+  |> XlsxWriter.write(0, 2, "Value", format: [:bold])
+  |> XlsxWriter.write(1, 0, "Widget A")
+  |> XlsxWriter.write(1, 1, "A very long description that would normally be cut off")
+  |> XlsxWriter.write(1, 2, 99.99)
+  |> XlsxWriter.autofit()
+
+{:ok, content} = XlsxWriter.generate([sheet])
+File.write!("autofit.xlsx", content)
+```
+
+**Note:** Explicit column widths set via `set_column_width/3` take precedence over autofit.
+
+## Worksheet Tab Colors
+
+Set the color of worksheet tabs for visual organization:
+
+```elixir
+sheet1 = XlsxWriter.new_sheet("Revenue")
+  |> XlsxWriter.set_tab_color("#00B050")
+  |> XlsxWriter.write(0, 0, "Revenue data")
+
+sheet2 = XlsxWriter.new_sheet("Expenses")
+  |> XlsxWriter.set_tab_color("#FF0000")
+  |> XlsxWriter.write(0, 0, "Expense data")
+
+sheet3 = XlsxWriter.new_sheet("Summary")
+  |> XlsxWriter.set_tab_color("#4472C4")
+  |> XlsxWriter.write(0, 0, "Summary data")
+
+{:ok, content} = XlsxWriter.generate([sheet1, sheet2, sheet3])
+File.write!("color_tabs.xlsx", content)
+```
+
 ## Complete Layout Example
 
 Here's a comprehensive example combining multiple layout features:
