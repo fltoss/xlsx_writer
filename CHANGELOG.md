@@ -1,3 +1,21 @@
+# v0.8.0
+
+## new features
+
+- Add workbook document properties via `XlsxWriter.WorkbookProperties` - set author, title, subject, manager, company, category, keywords, comment, and status metadata. Pass via `XlsxWriter.generate/2` with the `:properties` option.
+- Add worksheet tab colors via `XlsxWriter.set_tab_color/2` - color-code sheet tabs for visual organization in multi-sheet workbooks.
+- Add column autofit via `XlsxWriter.autofit/1` - automatically adjust column widths to fit the longest content.
+- Expand cell formatting options:
+  - `:text_wrap` - wrap text within a cell
+  - `{:valign, pos}` - vertical alignment (`:top`, `:center`, `:bottom`, `:justify`, `:distributed`)
+  - `{:rotation, angle}` - rotate text (-90 to 90 degrees, or 270 for vertical stacked)
+  - `:shrink` - shrink text to fit cell width
+  - `{:indent, level}` - indent text by a given level
+
+## improvements
+
+- Update cargo transitive dependencies (hashbrown, indexmap, inventory, simd-adler32)
+
 # v0.7.6
 
 ## new features
