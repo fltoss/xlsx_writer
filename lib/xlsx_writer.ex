@@ -261,7 +261,12 @@ defmodule XlsxWriter do
 
       formats when is_list(formats) ->
         Validation.validate_formats!(formats)
-        {name, [{:write, row, col, {:formula_with_format, val, formats}} | instructions]}
+
+        {name,
+         [
+           {:write, row, col, {:formula_with_format, val, formats}}
+           | instructions
+         ]}
     end
   end
 
@@ -406,13 +411,7 @@ defmodule XlsxWriter do
     write_with_format(sheet, row, col, Decimal.to_float(val), formats)
   end
 
-  defp write_with_format(
-         {name, instructions},
-         row,
-         col,
-         %Date{} = val,
-         formats
-       ) do
+  defp write_with_format({name, instructions}, row, col, %Date{} = val, formats) do
     Validation.validate_formats!(formats)
 
     instruction =
@@ -1190,7 +1189,9 @@ defmodule XlsxWriter do
 
   defp to_rust_val(%Decimal{} = amount), do: {:float, Decimal.to_float(amount)}
   defp to_rust_val(%Date{} = date), do: {:date, Date.to_iso8601(date)}
-  defp to_rust_val(%DateTime{} = datetime), do: {:date_time, DateTime.to_iso8601(datetime)}
+
+  defp to_rust_val(%DateTime{} = datetime),
+    do: {:date_time, DateTime.to_iso8601(datetime)}
 
   defp to_rust_val(%NaiveDateTime{} = datetime),
     do: {:date_time, NaiveDateTime.to_iso8601(datetime)}

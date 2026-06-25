@@ -1,6 +1,11 @@
 defmodule XlsxWriter.RustXlsxWriter do
   @moduledoc false
 
+  # quokka:skip-module-directives
+  # `use RustlerPrecompiled` references the variables defined below, so it must
+  # stay after them. The skip comment prevents Quokka from hoisting `use` to the
+  # top of the module (which would break compilation).
+
   config = Mix.Project.config()
 
   version = config[:version]
@@ -33,5 +38,7 @@ defmodule XlsxWriter.RustXlsxWriter do
     nif_versions: nif_versions
 
   def write(_data), do: :erlang.nif_error(:nif_not_loaded)
-  def write_with_properties(_data, _properties), do: :erlang.nif_error(:nif_not_loaded)
+
+  def write_with_properties(_data, _properties),
+    do: :erlang.nif_error(:nif_not_loaded)
 end

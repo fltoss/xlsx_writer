@@ -351,7 +351,10 @@ defmodule XlsxWriterTest do
     test "generates valid xlsx with text wrap" do
       sheet =
         XlsxWriter.new_sheet("Wrap")
-        |> XlsxWriter.write(0, 0, "This is a long text that should wrap within the cell",
+        |> XlsxWriter.write(
+          0,
+          0,
+          "This is a long text that should wrap within the cell",
           format: [:text_wrap]
         )
         |> XlsxWriter.write(0, 1, "Wrapped and bold",
@@ -368,7 +371,8 @@ defmodule XlsxWriterTest do
         XlsxWriter.new_sheet("Test")
         |> XlsxWriter.write(0, 0, "Wrapped", format: [:text_wrap])
 
-      {"Test", [{:write, 0, 0, {:string_with_format, "Wrapped", [:text_wrap]}}]} = sheet
+      {"Test", [{:write, 0, 0, {:string_with_format, "Wrapped", [:text_wrap]}}]} =
+        sheet
     end
   end
 
@@ -380,7 +384,9 @@ defmodule XlsxWriterTest do
         |> XlsxWriter.write(0, 1, "Center", format: [{:valign, :center}])
         |> XlsxWriter.write(0, 2, "Bottom", format: [{:valign, :bottom}])
         |> XlsxWriter.write(0, 3, "Justify", format: [{:valign, :justify}])
-        |> XlsxWriter.write(0, 4, "Distributed", format: [{:valign, :distributed}])
+        |> XlsxWriter.write(0, 4, "Distributed",
+          format: [{:valign, :distributed}]
+        )
         |> XlsxWriter.set_row_height(0, 40)
 
       assert {:ok, content} = XlsxWriter.generate([sheet])
@@ -404,7 +410,9 @@ defmodule XlsxWriterTest do
         XlsxWriter.new_sheet("Test")
         |> XlsxWriter.write(0, 0, "Top", format: [{:valign, :top}])
 
-      {"Test", [{:write, 0, 0, {:string_with_format, "Top", [{:valign, :top}]}}]} = sheet
+      {"Test",
+       [{:write, 0, 0, {:string_with_format, "Top", [{:valign, :top}]}}]} =
+        sheet
     end
   end
 
@@ -427,7 +435,9 @@ defmodule XlsxWriterTest do
         XlsxWriter.new_sheet("Test")
         |> XlsxWriter.write(0, 0, "Rotated", format: [{:rotation, 45}])
 
-      {"Test", [{:write, 0, 0, {:string_with_format, "Rotated", [{:rotation, 45}]}}]} = sheet
+      {"Test",
+       [{:write, 0, 0, {:string_with_format, "Rotated", [{:rotation, 45}]}}]} =
+        sheet
     end
   end
 
@@ -435,7 +445,10 @@ defmodule XlsxWriterTest do
     test "generates valid xlsx with shrink to fit" do
       sheet =
         XlsxWriter.new_sheet("Shrink")
-        |> XlsxWriter.write(0, 0, "This long text will shrink to fit the column width",
+        |> XlsxWriter.write(
+          0,
+          0,
+          "This long text will shrink to fit the column width",
           format: [:shrink]
         )
         |> XlsxWriter.write(0, 1, "Shrink + bold", format: [:shrink, :bold])
@@ -451,7 +464,8 @@ defmodule XlsxWriterTest do
         XlsxWriter.new_sheet("Test")
         |> XlsxWriter.write(0, 0, "Shrink", format: [:shrink])
 
-      {"Test", [{:write, 0, 0, {:string_with_format, "Shrink", [:shrink]}}]} = sheet
+      {"Test", [{:write, 0, 0, {:string_with_format, "Shrink", [:shrink]}}]} =
+        sheet
     end
   end
 
@@ -473,7 +487,9 @@ defmodule XlsxWriterTest do
         XlsxWriter.new_sheet("Test")
         |> XlsxWriter.write(0, 0, "Indented", format: [{:indent, 2}])
 
-      {"Test", [{:write, 0, 0, {:string_with_format, "Indented", [{:indent, 2}]}}]} = sheet
+      {"Test",
+       [{:write, 0, 0, {:string_with_format, "Indented", [{:indent, 2}]}}]} =
+        sheet
     end
   end
 
@@ -1016,7 +1032,6 @@ defmodule XlsxWriterTest do
       assert {:ok, content} = result
       assert <<80, _>> <> _ = content
     end
-
   end
 
   describe "write_rich_string/5" do
@@ -1375,8 +1390,7 @@ defmodule XlsxWriterTest do
         XlsxWriter.new_sheet("X")
         |> XlsxWriter.write(0, 0, :hello, format: [:bold])
 
-      assert {"X",
-              [{:write, 0, 0, {:string_with_format, "hello", [:bold]}}]} =
+      assert {"X", [{:write, 0, 0, {:string_with_format, "hello", [:bold]}}]} =
                sheet
 
       assert {:ok, _} = XlsxWriter.generate([sheet])
