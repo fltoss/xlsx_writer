@@ -1,3 +1,12 @@
+# v0.10.0
+
+## improvements
+
+- Update `rustler` from 0.37.4 to 0.38.0 (Elixir and Rust crate).
+- Update dev/test tooling: `credo`, `ex_doc`, `igniter`, and `quokka`.
+- Update `decimal` from 3.1.0 to 3.1.1.
+- Update cargo transitive dependencies (bumpalo, log, memchr, quote, syn, zlib-rs).
+
 # v0.9.0
 
 ## breaking changes
