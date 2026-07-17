@@ -1,3 +1,13 @@
+# v0.10.1
+
+## improvements
+
+- Update `rust_xlsxwriter` from 0.95.0 to 0.96.0
+  - `Workbook::save_to_writer()` no longer requires the `Seek` trait (internal move to the zip.rs stream API); no API changes affecting this library, which uses `save_to_buffer()`.
+- Update cargo transitive dependencies (memchr, rustversion, simd-adler32, syn, zlib-rs).
+- Update mix dev/test transitive dependencies (erlex, ex_ast, hpax, makeup, mint, req).
+- CI: test against all supported Elixir versions — add Elixir 1.20 and OTP 28.5/29.0 to the matrix, and bump existing entries to the latest patch releases (Elixir 1.18.4, 1.19.5, 1.20.2 on OTP 26.2/27.3/28.5/29.0 per the official compatibility table).
+
 # v0.10.0
 
 ## improvements
