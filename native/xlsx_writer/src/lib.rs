@@ -1,4 +1,7 @@
-use rust_xlsxwriter::{Color, DocProperties, ExcelDateTime, Format, FormatAlign, FormatBorder, FormatPattern, FormatScript, FormatUnderline, Image, Note, Workbook, Worksheet, XlsxError, Formula, Url};
+use rust_xlsxwriter::{
+    Color, DocProperties, ExcelDateTime, Format, FormatAlign, FormatBorder, FormatPattern,
+    FormatScript, FormatUnderline, Formula, Image, Note, Url, Workbook, Worksheet, XlsxError,
+};
 use rustler::{Binary, NifTaggedEnum};
 
 #[derive(NifTaggedEnum, PartialEq)]
@@ -154,11 +157,17 @@ fn write(sheets: Vec<(String, Vec<Sheet>)>) -> Result<Vec<u8>, String> {
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
-fn write_with_properties(sheets: Vec<(String, Vec<Sheet>)>, properties: WorkbookProperties) -> Result<Vec<u8>, String> {
+fn write_with_properties(
+    sheets: Vec<(String, Vec<Sheet>)>,
+    properties: WorkbookProperties,
+) -> Result<Vec<u8>, String> {
     write_impl(sheets, Some(properties))
 }
 
-fn write_impl(sheets: Vec<(String, Vec<Sheet>)>, properties: Option<WorkbookProperties>) -> Result<Vec<u8>, String> {
+fn write_impl(
+    sheets: Vec<(String, Vec<Sheet>)>,
+    properties: Option<WorkbookProperties>,
+) -> Result<Vec<u8>, String> {
     let mut workbook = Workbook::new();
 
     if let Some(props) = properties {
@@ -319,7 +328,14 @@ fn merge_range<'a, 'b>(
     data: CellData<'b>,
 ) -> Result<&'a mut Worksheet, XlsxError> {
     match data {
-        CellData::String(val) => worksheet.merge_range(first_row, first_col, last_row, last_col, &val, &Format::new()),
+        CellData::String(val) => worksheet.merge_range(
+            first_row,
+            first_col,
+            last_row,
+            last_col,
+            &val,
+            &Format::new(),
+        ),
         CellData::StringWithFormat(val, formats) => {
             let format = apply_formats(Format::new(), &formats);
             worksheet.merge_range(first_row, first_col, last_row, last_col, &val, &format)
@@ -350,10 +366,8 @@ fn merge_range<'a, 'b>(
             worksheet.merge_range(first_row, first_col, last_row, last_col, "", &format)
         }
         CellData::DateWithFormat(iso8601, user_formats) => {
-            let date_format = apply_formats(
-                Format::new().set_num_format("yyyy-mm-dd"),
-                &user_formats,
-            );
+            let date_format =
+                apply_formats(Format::new().set_num_format("yyyy-mm-dd"), &user_formats);
 
             let date = ExcelDateTime::parse_from_str(&iso8601)?;
             worksheet.write_with_format(first_row, first_col, &date, &date_format)?;
@@ -399,10 +413,8 @@ fn write_data<'a, 'b>(
             worksheet.write_with_format(row, col, &date, &date_format)
         }
         CellData::DateWithFormat(iso8601, user_formats) => {
-            let date_format = apply_formats(
-                Format::new().set_num_format("yyyy-mm-dd"),
-                &user_formats,
-            );
+            let date_format =
+                apply_formats(Format::new().set_num_format("yyyy-mm-dd"), &user_formats);
             let date = ExcelDateTime::parse_from_str(&iso8601)?;
 
             worksheet.write_with_format(row, col, &date, &date_format)
@@ -534,8 +546,12 @@ fn apply_formats(mut format: Format, formats: &[CellFormat]) -> Format {
             CellFormat::Underline(style) => match style {
                 UnderlineStyle::Single => format.set_underline(FormatUnderline::Single),
                 UnderlineStyle::Double => format.set_underline(FormatUnderline::Double),
-                UnderlineStyle::SingleAccounting => format.set_underline(FormatUnderline::SingleAccounting),
-                UnderlineStyle::DoubleAccounting => format.set_underline(FormatUnderline::DoubleAccounting),
+                UnderlineStyle::SingleAccounting => {
+                    format.set_underline(FormatUnderline::SingleAccounting)
+                }
+                UnderlineStyle::DoubleAccounting => {
+                    format.set_underline(FormatUnderline::DoubleAccounting)
+                }
             },
             CellFormat::Strikethrough => format.set_font_strikethrough(),
             CellFormat::FontSize(size) => format.set_font_size(*size),
@@ -545,58 +561,58 @@ fn apply_formats(mut format: Format, formats: &[CellFormat]) -> Format {
             CellFormat::Border(style) => {
                 let border_style = convert_border_style(style);
                 format.set_border(border_style)
-            },
+            }
             CellFormat::BorderTop(style) => {
                 let border_style = convert_border_style(style);
                 format.set_border_top(border_style)
-            },
+            }
             CellFormat::BorderBottom(style) => {
                 let border_style = convert_border_style(style);
                 format.set_border_bottom(border_style)
-            },
+            }
             CellFormat::BorderLeft(style) => {
                 let border_style = convert_border_style(style);
                 format.set_border_left(border_style)
-            },
+            }
             CellFormat::BorderRight(style) => {
                 let border_style = convert_border_style(style);
                 format.set_border_right(border_style)
-            },
+            }
             CellFormat::BorderColor(color_hex) => {
                 if let Some(color) = parse_hex_color(color_hex) {
                     format.set_border_color(color)
                 } else {
                     format
                 }
-            },
+            }
             CellFormat::BorderTopColor(color_hex) => {
                 if let Some(color) = parse_hex_color(color_hex) {
                     format.set_border_top_color(color)
                 } else {
                     format
                 }
-            },
+            }
             CellFormat::BorderBottomColor(color_hex) => {
                 if let Some(color) = parse_hex_color(color_hex) {
                     format.set_border_bottom_color(color)
                 } else {
                     format
                 }
-            },
+            }
             CellFormat::BorderLeftColor(color_hex) => {
                 if let Some(color) = parse_hex_color(color_hex) {
                     format.set_border_left_color(color)
                 } else {
                     format
                 }
-            },
+            }
             CellFormat::BorderRightColor(color_hex) => {
                 if let Some(color) = parse_hex_color(color_hex) {
                     format.set_border_right_color(color)
                 } else {
                     format
                 }
-            },
+            }
             CellFormat::TextWrap => format.set_text_wrap(),
             CellFormat::Valign(pos) => match pos {
                 CellVAlignPos::Top => format.set_align(FormatAlign::Top),
@@ -618,9 +634,7 @@ fn apply_formats(mut format: Format, formats: &[CellFormat]) -> Format {
 /// Returns None if the hex string is invalid.
 fn parse_hex_color(color_hex: &str) -> Option<Color> {
     let hex_str = color_hex.trim_start_matches('#');
-    u32::from_str_radix(hex_str, 16)
-        .ok()
-        .map(Color::from)
+    u32::from_str_radix(hex_str, 16).ok().map(Color::from)
 }
 
 fn convert_border_style(style: &BorderStyle) -> FormatBorder {
