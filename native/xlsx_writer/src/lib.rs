@@ -196,9 +196,8 @@ fn write_impl(sheets: Vec<(String, Vec<Sheet>)>, properties: Option<WorkbookProp
     for (sheet_name, sheet) in sheets {
         let mut worksheet = workbook.add_worksheet();
 
-        match worksheet.set_name(sheet_name) {
-            Err(e) => return Err(e.to_string()),
-            Ok(_) => (),
+        if let Err(e) = worksheet.set_name(sheet_name) {
+            return Err(e.to_string());
         }
 
         for instruction in sheet {
@@ -277,19 +276,19 @@ fn write_impl(sheets: Vec<(String, Vec<Sheet>)>, properties: Option<WorkbookProp
         }
     }
 
-    return match workbook.save_to_buffer() {
+    match workbook.save_to_buffer() {
         Ok(buf) => Ok(buf),
         Err(e) => Err(e.to_string()),
-    };
+    }
 }
 
-fn insert_note<'a>(
-    worksheet: &'a mut Worksheet,
+fn insert_note(
+    worksheet: &mut Worksheet,
     row: u32,
     col: u16,
     text: String,
     options: NoteOptions,
-) -> Result<&'a mut Worksheet, XlsxError> {
+) -> Result<&mut Worksheet, XlsxError> {
     let mut note = Note::new(&text);
 
     if let Some(author) = options.author {
@@ -356,10 +355,7 @@ fn merge_range<'a, 'b>(
                 &user_formats,
             );
 
-            let date = match ExcelDateTime::parse_from_str(&iso8601) {
-                Err(e) => return Err(e),
-                Ok(d) => d,
-            };
+            let date = ExcelDateTime::parse_from_str(&iso8601)?;
             worksheet.write_with_format(first_row, first_col, &date, &date_format)?;
             worksheet.merge_range(first_row, first_col, last_row, last_col, "", &date_format)
         }
@@ -369,10 +365,7 @@ fn merge_range<'a, 'b>(
                 &user_formats,
             );
 
-            let date = match ExcelDateTime::parse_from_str(&iso8601) {
-                Err(e) => return Err(e),
-                Ok(d) => d,
-            };
+            let date = ExcelDateTime::parse_from_str(&iso8601)?;
             worksheet.write_with_format(first_row, first_col, &date, &date_format)?;
             worksheet.merge_range(first_row, first_col, last_row, last_col, "", &date_format)
         }
@@ -401,42 +394,34 @@ fn write_data<'a, 'b>(
         CellData::Float(val) => worksheet.write(row, col, val),
         CellData::Date(iso8601) => {
             let date_format = Format::new().set_num_format("yyyy-mm-dd");
+            let date = ExcelDateTime::parse_from_str(&iso8601)?;
 
-            match ExcelDateTime::parse_from_str(&iso8601) {
-                Err(e) => return Err(e),
-                Ok(date) => worksheet.write_with_format(row, col, &date, &date_format),
-            }
-        },
+            worksheet.write_with_format(row, col, &date, &date_format)
+        }
         CellData::DateWithFormat(iso8601, user_formats) => {
             let date_format = apply_formats(
                 Format::new().set_num_format("yyyy-mm-dd"),
                 &user_formats,
             );
+            let date = ExcelDateTime::parse_from_str(&iso8601)?;
 
-            match ExcelDateTime::parse_from_str(&iso8601) {
-                Err(e) => return Err(e),
-                Ok(date) => worksheet.write_with_format(row, col, &date, &date_format),
-            }
-        },
+            worksheet.write_with_format(row, col, &date, &date_format)
+        }
         CellData::DateTime(iso8601) => {
             let date_format = Format::new().set_num_format("yyyy-mm-ddThh:mm:ss");
+            let date = ExcelDateTime::parse_from_str(&iso8601)?;
 
-            match ExcelDateTime::parse_from_str(&iso8601) {
-                Err(e) => return Err(e),
-                Ok(date) => worksheet.write_with_format(row, col, &date, &date_format),
-            }
-        },
+            worksheet.write_with_format(row, col, &date, &date_format)
+        }
         CellData::DateTimeWithFormat(iso8601, user_formats) => {
             let date_format = apply_formats(
                 Format::new().set_num_format("yyyy-mm-ddThh:mm:ss"),
                 &user_formats,
             );
+            let date = ExcelDateTime::parse_from_str(&iso8601)?;
 
-            match ExcelDateTime::parse_from_str(&iso8601) {
-                Err(e) => return Err(e),
-                Ok(date) => worksheet.write_with_format(row, col, &date, &date_format),
-            }
-        },
+            worksheet.write_with_format(row, col, &date, &date_format)
+        }
         CellData::Formula(val) => worksheet.write(row, col, Formula::new(val)),
         CellData::FormulaWithFormat(val, formats) => {
             let format = apply_formats(Format::new(), &formats);
@@ -469,14 +454,16 @@ fn write_data<'a, 'b>(
             let format = apply_formats(Format::new(), &formats);
             worksheet.write_blank(row, col, &format)
         }
-        CellData::ImagePath(val) => match Image::new(val) {
-            Err(e) => return Err(e),
-            Ok(image) => worksheet.insert_image(row, col, &image),
-        },
-        CellData::Image(binary) => match Image::new_from_buffer(binary.as_slice()) {
-            Err(e) => return Err(e),
-            Ok(image) => worksheet.insert_image(row, col, &image),
-        },
+        CellData::ImagePath(val) => {
+            let image = Image::new(val)?;
+
+            worksheet.insert_image(row, col, &image)
+        }
+        CellData::Image(binary) => {
+            let image = Image::new_from_buffer(binary.as_slice())?;
+
+            worksheet.insert_image(row, col, &image)
+        }
         CellData::RichString(segments) => {
             write_rich_string_helper(worksheet, row, col, &segments, None)
         }
@@ -623,7 +610,8 @@ fn apply_formats(mut format: Format, formats: &[CellFormat]) -> Format {
             CellFormat::Indent(level) => format.set_indent(*level),
         };
     }
-    return format;
+
+    format
 }
 
 /// Parses a hex color string (e.g., "#FF0000" or "FF0000") into a Color.
