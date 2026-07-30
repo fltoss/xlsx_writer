@@ -1,3 +1,18 @@
+# v0.10.2
+
+## improvements
+
+- Update `rust_xlsxwriter` from 0.96.0 to 0.97.0
+  - Picks up an update of the underlying `zip` crate from 7.2 to 8.6, which fixes two upstream ZIP64 "large file" handling bugs. Verified that generated workbooks are unchanged in structure: cell values, styles, hyperlinks, shared strings, autofit widths, and embedded image bytes all round-trip identically.
+  - Also fixes BMP images using "top-down" DIB row order, and returns an error instead of panicking on invalid or truncated image data — both reachable through `write_image/4`.
+  - No API changes affecting this library.
+- Update cargo transitive dependencies (libc, proc-macro2, quote).
+- Update mix dev-only dependencies (`igniter` 0.8.2 to 0.8.3) and their transitives (earmark_parser, ex_ast, glob_ex, req).
+
+## notes
+
+- Building the NIF from source now requires Rust 1.88.0 or later (raised by `rust_xlsxwriter` 0.97.0). This does not affect users of the precompiled binaries, which cover the same targets and NIF version as before.
+
 # v0.10.1
 
 ## improvements
