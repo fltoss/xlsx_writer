@@ -1,3 +1,19 @@
+# v0.10.3
+
+## improvements
+
+- Update `rust_xlsxwriter` from 0.97.0 to 0.99.0
+  - 0.97.1 fixes an XML element ordering bug that produced invalid Excel files when `set_tab_color()` and `set_print_fit_to_pages()` were both applied to a worksheet. Only `set_tab_color/2` is exposed here, so this library could not trigger it.
+  - 0.98.0 only bumps the optional `polars` dependency, which this library does not enable.
+  - 0.99.0 renames `XlsxError::TableNameReused` to `XlsxError::NameReused` and tightens validation of table and defined names. The rename is a breaking change in the crate, but this library never matches on `XlsxError` variants (it formats them with `to_string()`) and exposes neither tables nor defined names, so there is no impact on callers.
+  - Verified that generated workbooks are unchanged: running the full feature demo and an image workbook against both 0.97.0 and 0.99.0 produced byte-identical worksheet XML, styles, shared strings, drawings, notes, relationships, and embedded image bytes. The only difference was the creation timestamp in `docProps/core.xml`.
+- Update cargo transitive dependencies (crc32fast, log, zlib-rs).
+- Update mix dev-only dependencies (`req` 0.7.1 to 0.7.3, `spitfire` 0.3.13 to 0.4.0) and drop the stale `castore` lock entry, which no environment resolved.
+
+## notes
+
+- Building the NIF from source still requires Rust 1.88.0 or later; `rust_xlsxwriter` 0.99.0 did not raise its MSRV.
+
 # v0.10.2
 
 ## improvements
