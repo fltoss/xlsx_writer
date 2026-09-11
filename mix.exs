@@ -33,7 +33,6 @@ defmodule XlsxWriter.MixProject do
       # Dev tools
       {:credo, "~> 1.4", only: [:dev], runtime: false},
       {:quokka, "~> 2.6", only: [:dev], runtime: false},
-      {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:igniter, "~> 0.5", only: [:dev]}
     ]
