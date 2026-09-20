@@ -50,11 +50,65 @@ defmodule XlsxWriter do
   - `merge_range/7` - Combine multiple cells
   - `hide_row/2`, `hide_column/2` - Hide rows/columns
   - `set_autofilter/5` - Add dropdown filters to headers
+  - `ignore_error_range/6` - Suppress number-stored-as-text warnings for a range
 
   See the [full documentation](https://hexdocs.pm/xlsx_writer) for detailed function references.
   """
   alias XlsxWriter.RustXlsxWriter
   alias XlsxWriter.Validation
+
+  @doc """
+  Suppresses Excel's number-stored-as-text warning for an inclusive cell range.
+
+  Coordinates are zero-based. This preserves the values and their text type;
+  it only disables this warning in Excel for the specified range. Other error
+  checks remain enabled. Useful for identifiers with leading zeros.
+
+  Currently the supported error type is `:number_stored_as_text`.
+
+  ## Examples
+
+      iex> XlsxWriter.new_sheet("Codes")
+      ...> |> XlsxWriter.ignore_error_range(1, 0, 99, 0, :number_stored_as_text)
+      {"Codes", [{:ignore_error_range, 1, 0, 99, 0, :number_stored_as_text}]}
+
+  """
+  def ignore_error_range(
+        {name, instructions},
+        first_row,
+        first_col,
+        last_row,
+        last_col,
+        error
+      ) do
+    for row <- [first_row, last_row] do
+      unless is_integer(row) and row >= 0 and row <= 1_048_575 do
+        raise ArgumentError,
+              "Row index must be an integer between 0 and 1048575"
+      end
+    end
+
+    for col <- [first_col, last_col] do
+      unless is_integer(col) and col >= 0 and col <= 16_383 do
+        raise ArgumentError,
+              "Column index must be an integer between 0 and 16383"
+      end
+    end
+
+    if first_row > last_row or first_col > last_col do
+      raise ArgumentError, "Range start must not exceed range end"
+    end
+
+    unless error == :number_stored_as_text do
+      raise ArgumentError, "Unsupported error type: #{inspect(error)}"
+    end
+
+    {name,
+     [
+       {:ignore_error_range, first_row, first_col, last_row, last_col, error}
+       | instructions
+     ]}
+  end
 
   @doc """
   Generates an Excel xlsx file from a list of sheets.

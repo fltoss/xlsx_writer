@@ -2,6 +2,22 @@
 
 This guide covers advanced layout features for organizing and structuring your spreadsheets.
 
+## Intentional numeric text
+
+Identifiers such as product codes may need to remain text to preserve leading
+zeros. Suppress Excel's number-stored-as-text warning only for those cells:
+
+```elixir
+sheet =
+  XlsxWriter.new_sheet("Codes")
+  |> XlsxWriter.write(1, 0, "0101", format: [{:num_format, "@"}])
+  |> XlsxWriter.ignore_error_range(1, 0, 99, 0, :number_stored_as_text)
+```
+
+The range is inclusive and zero-based (`A2:A100` above). This does not convert
+values or disable other error checks. The only supported error type currently
+is `:number_stored_as_text`.
+
 ## Freeze Panes
 
 Lock rows and/or columns when scrolling to keep headers visible:
