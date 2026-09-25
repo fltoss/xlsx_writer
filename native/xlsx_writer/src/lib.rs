@@ -1,6 +1,7 @@
 use rust_xlsxwriter::{
     Color, DocProperties, ExcelDateTime, Format, FormatAlign, FormatBorder, FormatPattern,
-    FormatScript, FormatUnderline, Formula, Image, Note, Url, Workbook, Worksheet, XlsxError,
+    FormatScript, FormatUnderline, Formula, IgnoreError, Image, Note, Url, Workbook, Worksheet,
+    XlsxError,
 };
 use rustler::{Binary, NifTaggedEnum};
 
@@ -135,6 +136,12 @@ enum Sheet<'a> {
     InsertNote(u32, u16, String, NoteOptions),
     SetTabColor(String),
     SetAutofit,
+    IgnoreErrorRange(u32, u16, u32, u16, IgnoredError),
+}
+
+#[derive(NifTaggedEnum)]
+enum IgnoredError {
+    NumberStoredAsText,
 }
 
 #[derive(rustler::NifStruct)]
@@ -277,6 +284,17 @@ fn write_impl(
                     }
                 }
                 Sheet::SetAutofit => worksheet.autofit(),
+                Sheet::IgnoreErrorRange(first_row, first_col, last_row, last_col, error) => {
+                    let error = match error {
+                        IgnoredError::NumberStoredAsText => IgnoreError::NumberStoredAsText,
+                    };
+                    match worksheet
+                        .ignore_error_range(first_row, first_col, last_row, last_col, error)
+                    {
+                        Ok(ws) => ws,
+                        Err(e) => return Err(e.to_string()),
+                    }
+                }
                 Sheet::Write(row, col, data) => match write_data(worksheet, row, col, data) {
                     Ok(ws) => ws,
                     Err(e) => return Err(e.to_string()),
